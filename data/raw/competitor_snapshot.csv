@@ -1,0 +1,5 @@
+company,ticker,active_users_m,revenue_2025_m,revenue_growth_pct,ipo_year,market_cap_b_feb2026,profitable,stock_return_since_klar_ipo,ps_ratio
+Klarna,KLAR,114,3500,26,2025,7.82,False,-51,2.23
+Affirm,AFRM,21,2650,36,2020,15.0,False,12,5.66
+PayPal (Pay Later),PYPL,400,31000,5,2002,72.0,True,-18,2.32
+Block / Afterpay,SQ,20,22000,8,2015,38.0,False,-8,1.73

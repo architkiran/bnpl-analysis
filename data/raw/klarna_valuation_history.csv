@@ -1,0 +1,10 @@
+date,event,valuation_b,share_price_equiv,type
+2019-02,Series D,5.5,,private
+2020-09,Series E,10.6,,private
+2021-06,Series G (Peak),45.6,,private
+2022-07,Down-round,6.7,,private
+2023-07,Secondary trades,9.0,,private
+2024-06,Pre-IPO round,14.0,,private
+2025-09-09,IPO Pricing,15.0,40.0,public
+2025-09-10,IPO Day 1 Close,17.0,45.82,public
+2026-02-11,Current (Feb 2026),7.82,19.75,public

@@ -1,0 +1,8 @@
+credit_type,delinquency_pct,source
+BNPL (official default rate),1.83,CFPB Dec 2025
+BNPL (self-reported late payments),41.0,LendingTree Survey 2025
+Overall consumer debt,3.5,NY Fed Q1 2025
+Credit cards,8.8,NY Fed Q1 2025
+Auto loans,4.2,NY Fed Q1 2025
+Student loans (90+ day),7.7,NY Fed Q1 2025
+Klarna net charge-off rate,0.54,Klarna Q2 2025 Earnings

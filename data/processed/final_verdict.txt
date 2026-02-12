@@ -1,0 +1,46 @@
+
+=============================================================================
+  BNPL UNDER THE MICROSCOPE — FINAL ANALYTICAL VERDICT
+=============================================================================
+
+DATA SUMMARY (as of Feb 12, 2026)
+----------------------------------
+KLAR stock: $19.75  (-51% from IPO price, -65% from ATH of $57.20)
+Analyst consensus: Buy | 14 analysts | Avg target $43.29 (+119% upside)
+Q3 2025: Revenue $903M (+26% YoY), GMV $32.7B (+25%), Net Loss -$95M
+US GMV growth: +43% YoY
+Merchants: 850K (+38% YoY). Active users: 114M
+Market cap: $7.82B | P/S ratio: ~2.2x
+
+WHAT THE DATA SHOWS
+--------------------
+1. KLARNA IS FUNDAMENTALLY STRONG but market-structurally broken.
+   Revenue growing 26% YoY at $3.5B run rate is genuinely impressive.
+   But it IPO'd into peak AI bubble enthusiasm, and the correction has
+   been brutal. The business has not deteriorated as much as the stock.
+
+2. THE PROFITABILITY GAP is the real story.
+   Q3 net loss -$95M vs prior year +$12M profit = regression.
+   ARPU is declining as merchant count surges. Klarna is adding
+   volume but not monetising it efficiently. The debit card and
+   banking products must drive ARPU recovery to justify the multiple.
+
+3. CONSUMER RISK IS REAL AND GROWING.
+   41% of BNPL users missed payments in 2025 (up from 34% in 2024).
+   61% are subprime. 63% stack multiple loans simultaneously.
+   The CFPB and NY Fed are building groundwork for mandatory credit
+   bureau reporting which would force tighter underwriting.
+
+4. AFFIRM IS OUTPERFORMING KLARNA on the public market.
+   AFRM: +12% since KLAR IPO. KLAR: -51%. Same sector, same macro.
+   Affirm's focus on fewer larger merchants with interest-bearing
+   loans creates cleaner more predictable revenue.
+
+VERDICT
+--------
+Bull:  $43-55 (12-month), driven by Q4 earnings surprise + ARPU recovery
+Base:  $20-35 near-term range-bound pending litigation clarity
+Bear:  $10-14 if macro deteriorates and BNPL defaults surface
+
+Not financial advice. All data sourced from public filings and reports.
+=============================================================================

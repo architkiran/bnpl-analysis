@@ -1,0 +1,5 @@
+scenario,default_rate,est_losses_b,losses_vs_cc_pct
+Base (official 1.83% charge-off),0.0183,0.64,0.6
+Moderate (5% effective default),0.05,1.75,1.7
+Stress (15% in recession),0.15,5.25,5.1
+Severe (20% — 2008-level shock),0.2,7.0,6.7
