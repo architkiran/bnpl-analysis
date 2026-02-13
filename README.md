@@ -8,7 +8,7 @@
 
 A full end-to-end data analysis project examining Klarna's IPO collapse, the BNPL consumer debt crisis, and what $560B in alternative credit tells us about the future of fintech.
 
-**[→ Live Dashboard](https://your-app-name.streamlit.app)** &nbsp;|&nbsp; Built with Python · Plotly · Streamlit · yfinance
+**[→ Live Dashboard](https://bnpl-analysis.streamlit.app/)** &nbsp;|&nbsp; Built with Python · Plotly · Streamlit · yfinance
 
 ---
 
