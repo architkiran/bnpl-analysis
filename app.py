@@ -336,13 +336,23 @@ elif section == "📈 Klarna Stock":
     if not live_data_ok:
         st.warning("Live data unavailable. Check internet connection or refresh.")
     else:
+        # Safe extraction — KLAR may have fewer rows than other tickers
+        klar = prices["KLAR"].dropna() if "KLAR" in prices.columns else pd.Series(dtype=float)
+        ret  = returns["KLAR"].dropna() if "KLAR" in returns.columns else pd.Series(dtype=float)
+
+        if len(klar) == 0:
+            st.warning("KLAR price data not yet available from yfinance. Try refreshing.")
+            st.stop()
+
+        current_price = float(klar.iloc[-1])
+        today_ret     = float(ret.iloc[-1]) * 100 if len(ret) > 0 else 0.0
+        ann_vol       = float(ret.std() * np.sqrt(252) * 100) if len(ret) > 1 else 0.0
+
         c1, c2, c3, c4 = st.columns(4)
-        klar = prices["KLAR"].dropna()
-        ret  = returns["KLAR"].dropna()
-        with c1: st.metric("Current Price", f"${klar.iloc[-1]:.2f}", f"{ret.iloc[-1]*100:+.2f}% today")
-        with c2: st.metric("From IPO ($40)", f"{(klar.iloc[-1]/40-1)*100:.1f}%", delta_color="inverse")
-        with c3: st.metric("From ATH ($57.20)", f"{(klar.iloc[-1]/57.20-1)*100:.1f}%", delta_color="inverse")
-        with c4: st.metric("Ann. Volatility", f"{ret.std()*np.sqrt(252)*100:.1f}%", "vs S&P ~15%")
+        with c1: st.metric("Current Price", f"${current_price:.2f}", f"{today_ret:+.2f}% today")
+        with c2: st.metric("From IPO ($40)", f"{(current_price/40-1)*100:.1f}%", delta_color="inverse")
+        with c3: st.metric("From ATH ($57.20)", f"{(current_price/57.20-1)*100:.1f}%", delta_color="inverse")
+        with c4: st.metric("Ann. Volatility", f"{ann_vol:.1f}%", "vs S&P ~15%")
 
         st.markdown("---")
 
@@ -417,56 +427,73 @@ elif section == "📈 Klarna Stock":
 
             with col1:
                 # Returns distribution
-                klar_ret = returns["KLAR"].dropna() * 100
-                fig = go.Figure()
-                fig.add_trace(go.Histogram(
-                    x=klar_ret, nbinsx=40,
-                    marker_color=GOLD, opacity=0.7, name="Daily Returns",
-                ))
-                fig.add_vline(x=klar_ret.mean(), line_color=RED, line_dash="dash",
-                             annotation_text=f"Mean: {klar_ret.mean():.2f}%", annotation_font_size=10)
-                fig.add_vline(x=0, line_color=MUTED, line_dash="dot")
-                fig.update_layout(
-                    **PLOTLY_TEMPLATE["layout"],
-                    height=320, xaxis_title="Daily Return (%)",
-                    title=dict(text="KLAR Daily Returns Distribution", font=dict(color="white", size=12)),
-                    showlegend=False,
-                )
-                st.plotly_chart(fig, use_container_width=True)
+                if "KLAR" not in returns.columns or len(returns["KLAR"].dropna()) == 0:
+                    st.info("KLAR return data not yet available.")
+                else:
+                    klar_ret = returns["KLAR"].dropna() * 100
+                    fig = go.Figure()
+                    fig.add_trace(go.Histogram(
+                        x=klar_ret, nbinsx=40,
+                        marker_color=GOLD, opacity=0.7, name="Daily Returns",
+                    ))
+                    fig.add_vline(x=float(klar_ret.mean()), line_color=RED, line_dash="dash",
+                                 annotation_text=f"Mean: {klar_ret.mean():.2f}%", annotation_font_size=10)
+                    fig.add_vline(x=0, line_color=MUTED, line_dash="dot")
+                    fig.update_layout(
+                        **PLOTLY_TEMPLATE["layout"],
+                        height=320, xaxis_title="Daily Return (%)",
+                        title=dict(text="KLAR Daily Returns Distribution", font=dict(color="white", size=12)),
+                        showlegend=False,
+                    )
+                    st.plotly_chart(fig, use_container_width=True)
 
             with col2:
-                # Risk/return scatter
-                summary = {}
-                for t in ["KLAR", "AFRM", "PYPL", "SQ", "^GSPC"]:
-                    r = returns[t].dropna()
-                    summary[t] = {
-                        "ann_return": r.mean() * 252 * 100,
-                        "ann_vol":    r.std()  * np.sqrt(252) * 100,
-                    }
-                s = pd.DataFrame(summary).T.reset_index()
-                s.columns = ["ticker", "ann_return", "ann_vol"]
-                s["label"] = ["Klarna","Affirm","PayPal","Block","S&P 500"]
+                # Risk/return scatter — fully dynamic, no hardcoded lengths
+                TICKER_LABEL_MAP = {
+                    "KLAR": "Klarna", "AFRM": "Affirm",
+                    "PYPL": "PayPal", "SQ": "Block", "^GSPC": "S&P 500"
+                }
+                ALL_COLORS = {**TICKER_COLORS, "^GSPC": MUTED}
 
-                fig = go.Figure()
-                for _, row in s.iterrows():
-                    fig.add_trace(go.Scatter(
-                        x=[row["ann_vol"]], y=[row["ann_return"]],
-                        mode="markers+text",
-                        marker=dict(size=14, color=TICKER_COLORS[row["ticker"]]),
-                        text=[row["label"]],
-                        textposition="top right",
-                        textfont=dict(color=TICKER_COLORS[row["ticker"]], size=10),
-                        showlegend=False,
-                    ))
-                fig.add_hline(y=0, line_color="#2A2A35", line_dash="dot")
-                fig.update_layout(
-                    **PLOTLY_TEMPLATE["layout"],
-                    height=320,
-                    xaxis_title="Annualised Volatility (%)",
-                    yaxis_title="Annualised Return (%)",
-                    title=dict(text="Risk vs Return (Annualised, Since IPO)", font=dict(color="white", size=12)),
-                )
-                st.plotly_chart(fig, use_container_width=True)
+                avail = [t for t in ["KLAR","AFRM","PYPL","SQ","^GSPC"]
+                         if t in returns.columns]
+                rows = []
+                for t in avail:
+                    r = returns[t].dropna()
+                    if len(r) > 1:
+                        rows.append({
+                            "ticker":     t,
+                            "ann_return": r.mean() * 252 * 100,
+                            "ann_vol":    r.std()  * np.sqrt(252) * 100,
+                            "label":      TICKER_LABEL_MAP.get(t, t),
+                            "color":      ALL_COLORS.get(t, MUTED),
+                        })
+
+                if rows:
+                    s = pd.DataFrame(rows)
+                    fig = go.Figure()
+                    for _, row in s.iterrows():
+                        fig.add_trace(go.Scatter(
+                            x=[row["ann_vol"]], y=[row["ann_return"]],
+                            mode="markers+text",
+                            marker=dict(size=14, color=row["color"]),
+                            text=[row["label"]],
+                            textposition="top right",
+                            textfont=dict(color=row["color"], size=10),
+                            showlegend=False,
+                        ))
+                    fig.add_hline(y=0, line_color="#2A2A35", line_dash="dot")
+                    fig.update_layout(
+                        **PLOTLY_TEMPLATE["layout"],
+                        height=320,
+                        xaxis_title="Annualised Volatility (%)",
+                        yaxis_title="Annualised Return (%)",
+                        title=dict(text="Risk vs Return (Annualised, Since IPO)",
+                                   font=dict(color="white", size=12)),
+                    )
+                    st.plotly_chart(fig, use_container_width=True)
+                else:
+                    st.info("Not enough data yet for risk/return scatter.")
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -755,17 +782,16 @@ elif section == "🏆 Competitors":
         }
         sc = pd.DataFrame(scorecard_data)
 
+        SCORECARD_TICKERS = {"KLAR": GOLD, "AFRM": GREEN, "PYPL": BLUE, "SQ": ORANGE}
         fig = go.Figure()
-        for ticker, color in TICKER_COLORS.items():
+        for ticker, color in SCORECARD_TICKERS.items():
             fig.add_trace(go.Bar(
                 name=ticker, x=sc["Metric"], y=sc[ticker],
                 marker_color=color, opacity=0.85,
             ))
-        fig.update_layout(
-            **PLOTLY_TEMPLATE["layout"], height=400, barmode="group",
-            yaxis=dict(tickvals=[1,2,3,4,5], ticktext=["Poor","Below Avg","Average","Good","Excellent"]),
-            title=dict(text="Competitor Scorecard (1-5 per metric)", font=dict(color="white", size=13)),
-        )
+        fig.update_layout(**PLOTLY_TEMPLATE["layout"], height=400, barmode="group",
+                          title=dict(text="Competitor Scorecard (1-5 per metric)", font=dict(color="white", size=13)))
+        fig.update_yaxes(tickvals=[1,2,3,4,5], ticktext=["Poor","Below Avg","Average","Good","Excellent"])
         st.plotly_chart(fig, use_container_width=True)
 
         totals = {t: sum(scorecard_data[t]) for t in ["KLAR","AFRM","PYPL","SQ"]}
@@ -776,19 +802,24 @@ elif section == "🏆 Competitors":
 
     with t3:
         if live_data_ok:
-            corr = returns[["KLAR","AFRM","PYPL","SQ","^GSPC"]].corr()
-            labels = {"KLAR":"Klarna","AFRM":"Affirm","PYPL":"PayPal","SQ":"Block","^GSPC":"S&P 500"}
-            tick_labels = [labels[t] for t in corr.columns]
-            fig = go.Figure(go.Heatmap(
-                z=corr.values, x=tick_labels, y=tick_labels,
-                colorscale="RdYlGn", zmin=-1, zmax=1,
-                text=corr.round(2).values,
-                texttemplate="%{text}",
-                textfont=dict(color="white", size=12),
-            ))
-            fig.update_layout(**PLOTLY_TEMPLATE["layout"], height=400,
-                              title=dict(text="Returns Correlation Matrix", font=dict(color="white", size=13)))
-            st.plotly_chart(fig, use_container_width=True)
+            # Only use columns that actually exist in returns
+            avail_tickers = [t for t in ["KLAR","AFRM","PYPL","SQ","^GSPC"] if t in returns.columns]
+            if len(avail_tickers) < 2:
+                st.info("Not enough ticker data for correlation matrix yet. Try refreshing.")
+            else:
+                corr = returns[avail_tickers].corr()
+                labels = {"KLAR":"Klarna","AFRM":"Affirm","PYPL":"PayPal","SQ":"Block","^GSPC":"S&P 500"}
+                tick_labels = [labels[t] for t in corr.columns]
+                fig = go.Figure(go.Heatmap(
+                    z=corr.values, x=tick_labels, y=tick_labels,
+                    colorscale="RdYlGn", zmin=-1, zmax=1,
+                    text=corr.round(2).values,
+                    texttemplate="%{text}",
+                    textfont=dict(color="white", size=12),
+                ))
+                fig.update_layout(**PLOTLY_TEMPLATE["layout"], height=400,
+                                  title=dict(text="Returns Correlation Matrix", font=dict(color="white", size=13)))
+                st.plotly_chart(fig, use_container_width=True)
         else:
             st.info("Live data needed for correlation matrix.")
 
